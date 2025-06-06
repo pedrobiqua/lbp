@@ -15,6 +15,7 @@ int main(int argc, char const *argv[])
 
     lbp_library::lbp lbp;
     std::cout << lbp.getDefaultName() << std::endl;
+    lbp.compute(image);
 
     imshow("Display window", image);
     int k = cv::waitKey(0);
