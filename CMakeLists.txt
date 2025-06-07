@@ -9,6 +9,8 @@ find_package(OpenCV REQUIRED)
 
 # Adiciona os headers da biblioteca (não precisa compilar, pois é header-only)
 include_directories(
+    /usr/include/python3.12
+    /usr/lib/python3/dist-packages/numpy/core/include
     include
     ${OpenCV_INCLUDE_DIRS}
 )
@@ -23,6 +25,8 @@ foreach(example_src ${EXAMPLES})
 
     # Linka com OpenCV
     target_link_libraries(${example_name} ${OpenCV_LIBS})
+
+    link_libraries(python3.12)
 
     # Opcional: define os exemplos como testes
     # enable_testing()
