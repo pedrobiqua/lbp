@@ -12,7 +12,7 @@ namespace lbp_library
     {
     private:
         /* data */
-        std::vector<int> histograma_; // Não é exatamente um histograma e mais o resultado do lbp
+        std::vector<int> lbpResult_; // Não é exatamente um histograma e mais o resultado do lbp
 
     public:
         LBP() {}
@@ -27,9 +27,8 @@ namespace lbp_library
         {
             // verifica se vem vazio
             CV_Assert(!src.empty() && src.channels() == 1);
-            // TODO: Montar o kernel e fazer o histograma com o valor do kernel, depois vou querer plotar ele
             // Estou pegando o canal 1, de escala de cinza e não RGB
-            std::cout << "Linhas: " << src.rows << " Colunas " << src.cols << std::endl;
+            // std::cout << "Linhas: " << src.rows << " Colunas " << src.cols << std::endl; // DEBUG
             dst = cv::Mat::zeros(src.rows, src.cols, CV_8UC1);
 
             for (int i = 1; i < src.rows; ++i)
@@ -38,8 +37,9 @@ namespace lbp_library
                 {
                     // Faço essa transformação se não vem caracter ascii
                     uchar center = src.at<uchar>(i, j);
-                    std::cout << static_cast<int>(src.at<uchar>(i, j)) << " ";
+                    // std::cout << static_cast<int>(src.at<uchar>(i, j)) << " "; // DEBUG
 
+                    // MOVIMENTAÇÃO DO "KERNEL"
                     uchar code = 0;
                     code |= (src.at<uchar>(i - 1, j - 1) >= center) << 7; // Canto superior esquerdo
                     code |= (src.at<uchar>(i - 1, j) >= center) << 6;     // canto esquerdo
@@ -51,7 +51,7 @@ namespace lbp_library
                     code |= (src.at<uchar>(i, j - 1) >= center) << 0;     // canto inferior
 
                     // Adicionar o code em uma estrutura do número binário montado
-                    this->histograma_.push_back(static_cast<int>(code));
+                    this->lbpResult_.push_back(static_cast<int>(code));
                     dst.at<uchar>(i, j) = code;
                 }
                 std::cout << std::endl;
@@ -60,13 +60,13 @@ namespace lbp_library
 
         std::vector<int> getResult() const
         {
-            return this->histograma_;
+            return this->lbpResult_;
         }
 
         std::vector<int> getHistogram() const
         {
             std::vector<int> histograma(256, 0);
-            for (auto &&i : this->histograma_)
+            for (auto &&i : this->lbpResult_)
             {
                 histograma[i]++;
             }
