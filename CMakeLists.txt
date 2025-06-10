@@ -6,11 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Encontra o OpenCV
 find_package(OpenCV REQUIRED)
+find_package(Armadillo REQUIRED)
 
 # Adiciona os headers da biblioteca (não precisa compilar, pois é header-only)
 include_directories(
+    /usr/include/python3.12
+    /usr/lib/python3/dist-packages/numpy/core/include
     include
     ${OpenCV_INCLUDE_DIRS}
+    ${ARMADILLO_INCLUDE_DIRS} # Adicionado: Armadillo include directories
 )
 
 # Garante que todos os exemplos sejam construídos
@@ -21,8 +25,14 @@ foreach(example_src ${EXAMPLES})
 
     add_executable(${example_name} ${example_src})
 
-    # Linka com OpenCV
-    target_link_libraries(${example_name} ${OpenCV_LIBS})
+    # Linka com OpenCV e Armadillo
+    target_link_libraries(${example_name}
+        ${OpenCV_LIBS}
+        ${ARMADILLO_LIBRARIES}
+    )
+
+    # Link para o matplotlibcpp
+    link_libraries(python3.12)
 
     # Opcional: define os exemplos como testes
     # enable_testing()
