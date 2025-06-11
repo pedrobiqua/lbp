@@ -17,6 +17,8 @@
 namespace knn_ml {
 
 // Estrutura de dados para pontos
+
+// Vou transformar isso para classe e fazer um construtor que receber um vector<int>
 struct data_point {
     arma::rowvec features; // Características do ponto
     int label; // Rótulo (classe) do ponto
@@ -27,6 +29,18 @@ struct data_point {
     {
     }
 };
+
+std::vector<data_point> convert_data_points(const std::vector<int>& lbpResult, int target) {
+    std::vector<data_point> result;
+
+    // Converte para double, para eu poder fazer os calculos de distância do knn
+    std::vector<double> temp(lbpResult.begin(), lbpResult.end());
+    arma::rowvec features(temp);
+    // Uso o emplace back para evitar cópias desnecessárias
+    result.emplace_back(features, target);
+
+    return result;
+}
 
 class knn {
 private:
