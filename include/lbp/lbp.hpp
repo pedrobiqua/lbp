@@ -54,7 +54,7 @@ namespace lbp_library
                     this->lbpResult_.push_back(static_cast<int>(code));
                     dst.at<uchar>(i, j) = code;
                 }
-                std::cout << std::endl;
+                // std::cout << std::endl;
             }
         }
 
