@@ -13,115 +13,125 @@
 #include <unordered_map>
 #include <vector>
 
-// Namespace para KNN
-namespace knn_ml {
+namespace knn_ml
+{
 
-// Estrutura de dados para pontos
-struct data_point {
-    arma::rowvec features; // Características do ponto
-    int label; // Rótulo (classe) do ponto
-
-    data_point(arma::rowvec f, int l)
-        : features(f)
-        , label(l)
+    class data_point
     {
-    }
-};
+    private:
+        arma::rowvec features_;
+        int label_;
 
-class knn {
-private:
-    std::vector<data_point> train_data;
-    std::string distance_metric;
-    int k;
+    public:
+        data_point(const arma::rowvec &f, int l)
+            : features_(f), label_(l) {}
 
-public:
-    knn(const std::string& metric = "euclidean", const int& k = 3)
-        : distance_metric(metric), k(k) {}
-
-    ~knn() {
-        // Aqui você pode colocar o código para liberar recursos, se necessário.
-        // No caso dessa classe, parece que não há alocação dinâmica explícita, então o destruidor pode ser vazio.
-    }
-
-    void fit(const std::vector<data_point>& train) { train_data = train; }
-
-    std::vector<int> predict(const std::vector<data_point>& test_data)
-    {
-        std::vector<int> predictions;
-
-        // para cada ponto de teste, predizer a classe
-        for (const auto& test_point : test_data) {
-            int predicted_class = classify(test_point, k);
-            predictions.push_back(predicted_class);
+        data_point(const std::vector<int> &f, int l)
+            : label_(l)
+        {
+            std::vector<double> temp(f.begin(), f.end());
+            this->features_ = arma::rowvec(temp);
         }
 
-        return predictions;
-    }
+        const arma::rowvec &getFeatures() const
+        {
+            return this->features_;
+        }
 
-private:
-    double euclidean_distance(const arma::rowvec& a, const arma::rowvec& b)
-    {
-        return arma::norm(a - b, 2);
-    }
+        const int &getLabel() const
+        {
+            return this->label_;
+        }
+    };
 
-    double manhattan_distance(const arma::rowvec& a, const arma::rowvec& b)
+    class knn
     {
-        return arma::norm(a - b, 1); // Norm 1 (distância Manhattan)
-    }
+    private:
+        std::vector<data_point> train_data;
+        std::string distance_metric;
+        int k;
 
-    double minkowski_distance(const arma::rowvec& a, const arma::rowvec& b, double p)
-    {
-        return std::pow(arma::norm(a - b, p), 1.0 / p); // Distância Minkowski
-    }
+    public:
+        knn(const std::string &metric = "euclidean", const int &k = 3)
+            : distance_metric(metric), k(k) {}
 
-    // Função auxiliar para calcular a distância
-    double calculate_distance(const arma::rowvec& a, const arma::rowvec& b)
-    {
-        if (distance_metric == "euclidean") {
-            return euclidean_distance(a, b);
-        } else if (distance_metric == "manhattan") {
-            return manhattan_distance(a, b);
-        } else if (distance_metric == "minkowski") {
-            double p = 3;
-            return minkowski_distance(a, b, p);
-        } else {
+        ~knn() {}
+
+        void fit(const std::vector<data_point> &train)
+        {
+            train_data = train;
+        }
+
+        std::vector<int> predict(const std::vector<data_point> &test_data)
+        {
+            std::vector<int> predictions;
+            for (const auto &test_point : test_data)
+            {
+                int predicted_class = classify(test_point, k);
+                predictions.push_back(predicted_class);
+            }
+            return predictions;
+        }
+
+    private:
+        double euclidean_distance(const arma::rowvec &a, const arma::rowvec &b)
+        {
+            // Distância Euclidiana
+            return arma::accu(arma::square(a - b));
+        }
+
+        double manhattan_distance(const arma::rowvec &a, const arma::rowvec &b)
+        {
+            return arma::norm(a - b, 1);
+        }
+
+        double minkowski_distance(const arma::rowvec &a, const arma::rowvec &b, double p)
+        {
+            return std::pow(arma::accu(arma::pow(arma::abs(a - b), p)), 1.0 / p);
+        }
+
+        double calculate_distance(const arma::rowvec &a, const arma::rowvec &b)
+        {
+            if (distance_metric == "euclidean")
+                return euclidean_distance(a, b);
+            if (distance_metric == "manhattan")
+                return manhattan_distance(a, b);
+            if (distance_metric == "minkowski")
+                return minkowski_distance(a, b, 3);
             throw std::invalid_argument("Métrica de distância desconhecida");
         }
-    }
 
-    // Função para classificação
-    int classify(const data_point& test_point, int k)
-    {
-        std::vector<std::pair<double, int>> distances;
-
-        // Calcular a distância de cada ponto de treino para o ponto de teste
-        for (const auto& train_point : train_data) {
-            double dist = calculate_distance(test_point.features, train_point.features);
-            distances.push_back(std::make_pair(dist, train_point.label));
-        }
-
-        // Ordenar as distâncias
-        std::sort(distances.begin(), distances.end());
-
-        // Contar as classes dos k vizinhos mais próximos
-        std::unordered_map<int, int> class_count;
-        for (int i = 0; i < k; i++) {
-            class_count[distances[i].second]++;
-        }
-
-        // Encontrar a classe com maior contagem
-        int predicted_class = -1;
-        int max_count = 0;
-        for (const auto& entry : class_count) {
-            if (entry.second > max_count) {
-                max_count = entry.second;
-                predicted_class = entry.first;
+        int classify(const data_point &test_point, int k)
+        {
+            std::vector<std::pair<double, int>> distances;
+            for (const auto &train_point : train_data)
+            {
+                double dist = calculate_distance(test_point.getFeatures(), train_point.getFeatures());
+                distances.emplace_back(dist, train_point.getLabel());
             }
-        }
 
-        return predicted_class;
-    }
-};
+            // Ordeno as distâncias calculadas, para facilitar na parte dos votos
+            std::sort(distances.begin(), distances.end());
+
+            std::unordered_map<int, int> class_count;
+            for (int i = 0; i < k; ++i)
+            {
+                class_count[distances[i].second]++;
+            }
+
+            int predicted_class = -1, max_count = 0;
+            for (const auto &entry : class_count)
+            {
+                if (entry.second > max_count)
+                {
+                    max_count = entry.second;
+                    predicted_class = entry.first;
+                }
+            }
+
+            return predicted_class;
+        }
+    };
 
 } // namespace knn_ml
 
