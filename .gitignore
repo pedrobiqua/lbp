@@ -1,6 +1,9 @@
+# ---> Python Env
+.env/
+
 # ---> IMG
-*.png
-*.jpg
+examples/imgs/2012-09-11/Empty/*.jpg
+examples/imgs/2012-09-11/Occupied/*.jpg
 
 # ---> VSCODE
 .vscode/
